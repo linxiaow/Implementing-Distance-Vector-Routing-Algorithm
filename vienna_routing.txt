@@ -1,0 +1,2 @@
+berlin 3|paris 2|rome 1|vienna 0
+berlin 2|paris 2|rome 1|vienna 0

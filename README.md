@@ -49,3 +49,34 @@ python dvrouter.py -p 8003 8000:7 8002:2
 ```
 
 The test output will be in test/ folder
+
+## CLIC test
+
+### Configuring pycharm to use SSH interpreter
+
+https://www.jetbrains.com/help/pycharm/configuring-remote-interpreters-via-ssh.html#ssh
+
+This will 
+1. auto sync with remote ssh system
+2. use remote environment
+
+### test with 4 host
+
+change the main funtion of Node(mode) to deploy
+```shell script
+python3 dvrouter.py rome:1 paris:7 vienna:3
+```
+
+```shell script
+python3 dvrouter.py berlin:1 vienna:1
+```
+
+```shell script
+python3 dvrouter.py berlin:3 rome:1 paris:2
+```
+
+```shell script
+python3 dvrouter.py berlin:7 vienna:2
+```
+
+Configure the test to 4 different domains

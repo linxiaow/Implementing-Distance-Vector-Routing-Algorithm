@@ -34,10 +34,11 @@ def translate_city_to_hostname_port(city: str, port=30000, mode="test") -> (str,
         "paris" : 8003,
     }
 
-    translate_host = gethostbyaddr(gethostname())[0]
     if mode == "test":
+        translate_host = gethostbyaddr(gethostname())[0]
         translate_port = mapping[city]
     else:
+        translate_host = city + suffix
         translate_port = port
     return translate_host, translate_port
 
@@ -45,8 +46,7 @@ def translate_city_to_hostname_port(city: str, port=30000, mode="test") -> (str,
 def translate_hostname_port_to_city(host: str, port: int = None, mode="test") -> str:
     """
     :param host: str, hostname
-    :param port: int. in test mode, it is actually the city. In deploy mode, it
-    can be None or have a value
+    :param port: int. only used for test mode
     :param mode: test or deploy
     :return: get the city name
     """
@@ -56,7 +56,6 @@ def translate_hostname_port_to_city(host: str, port: int = None, mode="test") ->
         8002: "vienna",
         8003: "paris",
     }
-
     translate_host = host
     if mode == "test":
         translate_city = mapping[port]
@@ -78,6 +77,7 @@ class Node:
         self.iter = 0  # register the iteration
         self.mode = mode
         self.host = gethostbyaddr(gethostname())[0]
+        print(self.host)
         if port is None:
             self.port = 30000  # + os.geteuid()  # geteuid is effective uid
         else:
@@ -94,7 +94,7 @@ class Node:
         if self.mode == "test":
             self.output_dir = "test"
         else:
-            self.output_dir = ""  # print to the root dir
+            self.output_dir = "."  # print to the root dir
 
         filename = self.city + "_routing.txt"
         output_file = os.path.join(self.output_dir, filename)
@@ -154,27 +154,15 @@ class Node:
     # Only call this once
     # Cities is: ['rome:1', 'paris':7]
     def parse_nodes(self, cities):
-        # if self.mode == "deploy":
-        #     for city in cities:
-        #         name, _ = city.split(':')
-        #         self.destination.append((uni + "@" + city + suffix, 30000))
-        #     self.table[self.city] = 0
-        # else:
-        #     # test mode
-        #     # the hosts are always localhost
-        #     # cities are given as ports
-        #     for city in cities:
-        #         name, _ = city.split(':')
-        #         self.destination.append((self.host, name))
-        #     self.table[self.city] = 0
-
         self.table[self.city] = 0
 
         for city in cities:
             # table initialization
             name, weight = city.split(':')
+            if self.mode == "test":
+                name = translate_hostname_port_to_city(self.host, int(name),
+                                                       self.mode)
             # need to translate a layer just for test mode
-            name = translate_hostname_port_to_city(self.host, int(name), self.mode)
             host, port = translate_city_to_hostname_port(name, self.port, self.mode)
             self.destination.append((host, port))
             self.table[name] = int(weight)
@@ -201,14 +189,17 @@ class Node:
         #     incoming_port = str(addr[1])
         # else:
         #     incoming_port = get_city_from_hostname(addr[0])
-        load_json = json.loads(payload)
-        updated = self.update_routing_table(load_json, addr[0], addr[1])
+        load_json = json.loads(payload.decode())
+        updated = self.update_routing_table(load_json, gethostbyaddr(addr[0])[0], addr[1])
         return updated
 
     # Called from inbound. Update Routing Table given what neighbor told you
     # argument: routing is the unpacked JSON file of routing table from neighbor
     def update_routing_table(self, routing, host, port):
         city = translate_hostname_port_to_city(host, port, self.mode)
+        print("host is ", host)
+        print("port is ", port)
+        print("city is ", city)
         updated = False
         dist_to_neighbor = self.table[city]
 
@@ -248,7 +239,7 @@ def main():
         port = None
     except ValueError:
         port = None
-    node = Node(port, cities, mode="test")
+    node = Node(port, cities, mode="deploy")
 
     while True:
         try:
