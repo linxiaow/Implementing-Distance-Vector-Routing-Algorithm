@@ -233,7 +233,7 @@ def main():
         port = None
     except ValueError:
         port = None
-    node = Node(port, cities, mode="deploy")
+    node = Node(port, cities, mode="test")
 
     while True:
         try:
