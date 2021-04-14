@@ -63,7 +63,7 @@ This will
 
 ### test with 4 host
 
-change the main funtion of Node(mode) to deploy
+Now, use the dvrouter.py
 ```shell script
 python3 dvrouter.py rome:1 paris:7 vienna:3
 ```
@@ -79,5 +79,7 @@ python3 dvrouter.py berlin:3 rome:1 paris:2
 ```shell script
 python3 dvrouter.py berlin:7 vienna:2
 ```
+
+Kill them all after a few seconds.
 
 Configure the test to 4 different domains
